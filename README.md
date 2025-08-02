@@ -17,23 +17,41 @@ Ethan Kalchik Ben Andrusko
     1. Representation
         Terrain Basemap- USGS 3DEP Elevation (https://www.usgs.gov/ngp-standards-and-specifications3d-elevation-program-standards-and-specifications)
         Fire Weather Stations -(https://ipm.ucanr.edu/weather/ca-weather-data/#gsc.tab=0)
-        Current Fire Risk Surface - ( a custom weatehr model)
+        Current Fire Risk Surface - ( a custom weather model)
         Active Fire Perimeters -(https://inciweb.wildfire.gov/)
         Road Network - (https://www.openstreetmap.org/#map=5/38.01/-95.84)
         Population Density - (data/uscities.csv)
-        Evacuation Centers- ( will depend on the current enviornment)
+        Evacuation Centers- ( will depend on the current environment)
         Historical Fire Footprints - (https://gis.data.ca.gov/datasets/CALFIRE-Forestry::ca-perimeters-cal-fire-nifc-firis-public-view/about)
     2. Interaction
-        Weather Station Query-( depend on situation)
-        Temporal Risk Animation-( depend on situation)
-        Risk Level Filtering-( depend on situation)
-        Evacuation Route Planner-( depend on situation)
-        Historical Comparison-( depend on situation)
-        Layer Visibility Toggle-( depend on situation)
-        Risk Assessment Export-( depend on situation)
-        Emergency Alert System -( depend on situation)
-        Real-time Monitoring Dashboard -( depend on situation)
-        Resource Deployment Tracker -( depend on situation and deployment)
+        Weather Station Query-(create a situation)
+            Example: const weatherStations = [
+            {id: "RAWS_123", lat: 34.123, lon: -117.456,
+            windSpeed: 45, windDirection: 270, humidity: 12, temperature: 95, timestamp: "2020-09-27T14:00:00"}]
+        Temporal Risk Animation-(create a situation)
+            Example:const timeSteps = [
+            {time: "06:00", riskSurface: [...grid values...]},
+            {time: "08:00", riskSurface: [...updated values...]},
+            {time: "10:00", riskSurface: [...higher values...]}]
+        Risk Level Filtering-(create a situation)
+            Example: const riskAreas = [{id: 1, geometry: {...}, riskLevel: "high", score:8.5},{id: 2, geometry: {...}, riskLevel: "moderate", score: 4.2}]
+        Evacuation Route Planner-(create a situation)
+            How to create: Download OpenStreetMap road data for your study area. Identify real evacuation centers (schools, community centers). Use routing libraries like Leaflet Routing Machine. Create simple cost/time estimates based on road types
+        Historical Comparison-                                  (data\CA_Perimeters_CAL_FIRE_NIFC_FIRIS_public_view (1).geojson)
+        Layer Visibility Toggle-(create a situation)
+            Example:const layerControls = { weatherStations: true,        fireRisk: false, roads: true, population: false,evacuationCenters: true }
+        Risk Assessment Export-(create a situation)
+            Example: const assessmentReport = {timestamp:       "2020-09-27T14:30:00",scenario: "Perfect Storm Composite",
+            riskSummary: {highRiskAreas: 12, peopleAtRisk: 15420,
+            evacuationRoutesAvailable: 3, estimatedEvacuationTime: "2.5 hours"}, recommendations: [ "Issue pre-evacuation advisory for Eagle Mountain",
+            Stage resources at Riverside Community Center", "Monitor wind conditions at Station RAWS_456"]}
+        Emergency Alert System -(create a situation)
+            Example: const alertSystem = { templates: { preEvacuation:  "EVACUATION WARNING: Prepare to leave {area} due to wildfire threat. Monitor local radio for updates.", mandatory: "EVACUATION ORDER: Leave {area} immediately via {routes}. Go to {shelter}."}, deliveryLog: [ {time: "14:30", area: "Eagle Mountain", type: "preEvacuation", sent: true},
+            {time: "16:45", area: "Eagle Mountain", type: "mandatory", sent: false}]}
+        Real-time Monitoring Dashboard -(create a situation)
+            Example:const dashboardData = { activeIncidents: 3,weatherAlerts: ["Red Flag Warning", "Wind Advisory"],resourceStatus: {fireEngines: {available: 12, deployed: 8},
+            helicopters: {available: 2, deployed: 1}},
+            evacuationStatus: {inProgress: ["Eagle Mountain", "Pine Valley"], completed: ["Riverside Heights"]}}
         
 3. Wireframes
 - [Wireframe 1](img/wireframe1.jpg)
