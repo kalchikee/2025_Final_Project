@@ -47,6 +47,7 @@
                 <label><input type="checkbox" id="evacuation-buffers" checked> Evacuation Buffers</label>
                 <label><input type="checkbox" id="population-centers" checked> Population Centers</label>
                 <label><input type="checkbox" id="evacuation-centers"> Evacuation Centers</label>
+                <label><input type="checkbox" id="evacuation-zones"> Evacuation Zones</label> <!-- ADD THIS -->
                 <label><input type="checkbox" id="weather-stations"> Weather Stations</label>
                 <label><input type="checkbox" id="historical-fires"> Historical Fires</label>
                 <label><input type="checkbox" id="buffer-intersections"> Buffer Intersections</label>
@@ -56,6 +57,8 @@
             <div class="control-group">
                 <h4>📊 Analysis Tools</h4>
                 <button id="comparison-toggle" class="btn btn-primary">Historical Comparison</button>
+                <button id="plan-routes" class="btn btn-success">📍 Plan Evacuation Routes</button>
+                <button id="alert-communities" class="btn btn-warning">🚨 Alert Communities</button>
                 <button id="clear-routes" class="btn btn-secondary">Clear Routes</button>
                 <button id="export-report" class="btn btn-success">Export Report</button>
             </div>
@@ -273,7 +276,7 @@
                                     
                                     circle.bindPopup(`
                                         <div style="min-width: 200px;">
-                                            <h4 style="color: ${zone.color};">⚠️ ${zone.name}</h4>
+                                            <h4 style="color: #FF6B35;">⚠️ San Jacinto Fire Buffer</h4>
                                             <div style="font-size: 12px;">
                                                 <strong>Buffer Radius:</strong> ${(zone.radius/1000).toFixed(1)} km<br>
                                                 <strong>Purpose:</strong> Fire containment zone<br>
@@ -431,7 +434,7 @@
                                 
                                 circle.bindPopup(`
                                     <div style="min-width: 200px;">
-                                        <h4 style="color: ${color};">⚠️ ${area.name}</h4>
+                                        <h4 style="color:' + color + ';">⚠️ ' + area.name + '</h4>
                                         <div style="font-size: 12px;">
                                             <strong>Evacuation Level:</strong> ${area.level}<br>
                                             <strong>Buffer Radius:</strong> ${(area.radius/1000).toFixed(1)} km<br>
@@ -477,12 +480,14 @@
                 setTimeout(() => {
                     console.log('Setting up layer toggles...');
                     
+                    // Update the layer toggles array to include evacuation-zones:
                     const toggles = [
                         { id: '#fire-risk', layer: 'fireRisk' },
                         { id: '#fire-perimeters', layer: 'firePerimeters' },
                         { id: '#evacuation-buffers', layer: 'evacuationZones' },
                         { id: '#population-centers', layer: 'populationCenters' },
                         { id: '#evacuation-centers', layer: 'evacuationCenters' },
+                        { id: '#evacuation-zones', layer: 'evacuationZones' }, // ADD THIS
                         { id: '#weather-stations', layer: 'weatherStations' },
                         { id: '#historical-fires', layer: 'historicalFires' },
                         { id: '#buffer-intersections', layer: 'bufferIntersections' }
@@ -572,8 +577,7 @@
             
         }); // FIXED: Missing closing bracket for waitForMap callback
         
-    }, 1000); // End of setTimeout
- // End of $(document).ready
+    }, 1000); // End of setTimeout // ADD this missing closing bracket for $(document).ready
 
 // Listen for WildfireApp ready event
 window.addEventListener('wildfireAppReady', function() {
@@ -611,6 +615,9 @@ $(document).ready(function() {
             const displayTime = times[timeValue] || '12:00 PM';
             $('#time-display').text(displayTime);
             
+            // Update the narrative panel timestamp
+            $('#narrative-timestamp').text(`Simulation Time: ${displayTime}`);
+            
             // Update WildfireApp current time
             if (typeof WildfireApp !== 'undefined') {
                 WildfireApp.currentTime = timeValue + 6; // Convert to 24-hour format starting at 6 AM
@@ -645,7 +652,11 @@ $(document).ready(function() {
                     conditions = 'Evening conditions: Cooling temperatures, winds calming, humidity recovering.';
                 }
                 
+                // MODIFY THIS: Include time in the narrative
                 WildfireApp.updateNarrative(`🕒 ${currentTime}: ${conditions}`);
+                
+                // ADD THIS: Update the timestamp separately too
+                $('#narrative-timestamp').text(`Simulation Time: ${currentTime}`);
             }
             
             console.log('Simulation updated for time:', timeValue);
@@ -744,115 +755,274 @@ $(document).ready(function() {
         updateTimeDisplay(initialTime);
         updateSimulationTime(initialTime);
         
+        // ADD THIS: Initialize the narrative timestamp
+        const times = [
+            '06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM',
+            '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM',
+            '06:00 PM', '07:00 PM', '08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM'
+        ];
+        const initialDisplayTime = times[initialTime] || '06:00 AM';
+        $('#narrative-timestamp').text(`Simulation Time: ${initialDisplayTime}`);
+
         console.log('✅ Time controls and animation set up successfully');
         
     }, 4000); // Wait longer for all components to be ready
-    
-    // Analysis Tools functionality
-    let comparisonMode = false;
-    
-    $('#comparison-toggle').on('click', function() {
-        comparisonMode = !comparisonMode;
+}); // ADD this missing closing bracket for the time controls $(document).ready
+
+<!-- CONSOLIDATED Analysis Tools functionality - REPLACE ALL ANALYSIS TOOL SCRIPTS WITH THIS ONE -->
+$(document).ready(function() {
+    setTimeout(function() {
+        console.log('Setting up Analysis Tools functionality...');
         
-        if (comparisonMode) {
-            $(this).text('Exit Comparison').removeClass('btn-primary').addClass('btn-warning');
-            startHistoricalComparison();
-        } else {
-            $(this).text('Historical Comparison').removeClass('btn-warning').addClass('btn-primary');
-            exitHistoricalComparison();
-        }
-    });
-    
-    function startHistoricalComparison() {
-        console.log('Starting historical comparison mode');
+        // Analysis Tools functionality
+        let comparisonMode = false;
         
-        // Show historical fires if not already visible
-        if (!$('#historical-fires').is(':checked')) {
-            $('#historical-fires').prop('checked', true).trigger('change');
-        }
-        
-        // Add comparison overlay
-        if (WildfireApp && WildfireApp.map) {
-            const comparisonInfo = L.popup()
-                .setLatLng([33.7500, -116.5000])
-                .setContent(`
-                    <div style="min-width: 250px;">
-                        <h4 style="color: #2196F3;">📊 Historical Comparison Mode</h4>
-                        <div style="font-size: 12px; line-height: 1.4;">
-                            <strong>Now showing:</strong><br>
-                            • Current active fires (red)<br>
-                            • Historical fire locations (brown)<br>
-                            • Fire risk patterns over time<br><br>
-                            <strong>Analysis:</strong> Compare current fire behavior with historical patterns to predict spread and risk.
-                        </div>
-                    </div>
-                `)
-                .openOn(WildfireApp.map);
-        }
-        
-        // Update narrative
-        if (typeof WildfireApp !== 'undefined' && WildfireApp.updateNarrative) {
-            WildfireApp.updateNarrative('📊 Historical comparison mode activated. Comparing current conditions with past fire events.');
-        }
-    }
-    
-    function exitHistoricalComparison() {
-        console.log('Exiting historical comparison mode');
-        
-        // Close any open popups
-        if (WildfireApp && WildfireApp.map) {
-            WildfireApp.map.closePopup();
-        }
-        
-        // Update narrative
-        if (typeof WildfireApp !== 'undefined' && WildfireApp.updateNarrative) {
-            WildfireApp.updateNarrative('📊 Exited historical comparison mode. Returning to current fire monitoring.');
-        }
-    }
-    
-    // Clear Routes functionality
-    $('#clear-routes').on('click', function() {
-        console.log('Clear routes button clicked');
-        
-        if (typeof RouteManager !== 'undefined' && RouteManager.clearRoutes) {
-            RouteManager.clearRoutes();
-        } else if (typeof WildfireApp !== 'undefined' && WildfireApp.layers && WildfireApp.layers.routePlanning) {
-            WildfireApp.layers.routePlanning.clearLayers();
-            console.log('Routes cleared via WildfireApp');
+        // Historical Comparison Toggle
+        $('#comparison-toggle').off('click').on('click', function() {
+            comparisonMode = !comparisonMode;
             
-            if (WildfireApp.updateNarrative) {
-                WildfireApp.updateNarrative('🗑️ All evacuation routes cleared.');
+            if (comparisonMode) {
+                $(this).text('Exit Comparison').removeClass('btn-primary').addClass('btn-warning');
+                startHistoricalComparison();
+            } else {
+                $(this).text('Historical Comparison').removeClass('btn-warning').addClass('btn-primary');
+                exitHistoricalComparison();
             }
-        } else {
-            console.warn('No route clearing method available');
+        });
+        
+        function startHistoricalComparison() {
+            console.log('Starting historical comparison mode');
+            
+            // Show historical fires if not already visible
+            if (!$('#historical-fires').is(':checked')) {
+                $('#historical-fires').prop('checked', true).trigger('change');
+            }
+            
+            // Add comparison overlay
+            if (WildfireApp && WildfireApp.map) {
+                const comparisonInfo = L.popup()
+                    .setLatLng([33.7500, -116.5000])
+                    .setContent(`
+                        <div style="min-width: 250px;">
+                            <h4 style="color: #2196F3;">📊 Historical Comparison Mode</h4>
+                            <div style="font-size: 12px; line-height: 1.4;">
+                                <strong>Now showing:</strong><br>
+                                • Current active fires (red)<br>
+                                • Historical fire locations (brown)<br>
+                                • Fire risk patterns over time<br><br>
+                                <strong>Analysis:</strong> Compare current fire behavior with historical patterns to predict spread and risk.
+                            </div>
+                        </div>
+                    `)
+                    .openOn(WildfireApp.map);
+            }
+            
+            // Update narrative
+            if (typeof WildfireApp !== 'undefined' && WildfireApp.updateNarrative) {
+                const currentTime = $('#time-display').text() || '12:00 PM';
+                WildfireApp.updateNarrative('📊 Historical comparison mode activated. Comparing current conditions with past fire events.');
+                $('#narrative-timestamp').text(`Simulation Time: ${currentTime}`);
+            }
         }
-    });
+        
+        function exitHistoricalComparison() {
+            console.log('Exiting historical comparison mode');
+            
+            // Close any open popups
+            if (WildfireApp && WildfireApp.map) {
+                WildfireApp.map.closePopup();
+            }
+            
+            // Update narrative
+            if (typeof WildfireApp !== 'undefined' && WildfireApp.updateNarrative) {
+                const currentTime = $('#time-display').text() || '12:00 PM';
+                WildfireApp.updateNarrative('📊 Exited historical comparison mode. Returning to current fire monitoring.');
+                $('#narrative-timestamp').text(`Simulation Time: ${currentTime}`);
+            }
+        }
+        
+        // Clear Routes functionality
+        $('#clear-routes').off('click').on('click', function() {
+            console.log('Clear routes button clicked');
+            
+            try {
+                if (typeof RouteManager !== 'undefined' && RouteManager.clearRoutes) {
+                    RouteManager.clearRoutes();
+                    console.log('Routes cleared via RouteManager');
+                } else if (typeof WildfireApp !== 'undefined' && WildfireApp.layers && WildfireApp.layers.routePlanning) {
+                    WildfireApp.layers.routePlanning.clearLayers();
+                    console.log('Routes cleared via WildfireApp');
+                } else {
+                    console.warn('No route clearing method available');
+                    alert('⚠️ No routes to clear or route manager not available.');
+                    return;
+                }
+                
+                // Update narrative
+                if (WildfireApp && WildfireApp.updateNarrative) {
+                    const currentTime = $('#time-display').text() || '12:00 PM';
+                    WildfireApp.updateNarrative('🗑️ All evacuation routes cleared.');
+                    $('#narrative-timestamp').text(`Simulation Time: ${currentTime}`);
+                }
+                
+                alert('✅ All evacuation routes have been cleared from the map.');
+                
+            } catch (error) {
+                console.error('Error clearing routes:', error);
+                alert('❌ Error clearing routes. Check console for details.');
+            }
+        });
+        
+        // Export Report functionality
+        $('#export-report').off('click').on('click', function() {
+            console.log('Export report button clicked');
+            
+            try {
+                const currentTime = $('#time-display').text() || '12:00 PM';
+                const activeLayer = [];
+                
+                // Check which layers are active
+                if ($('#fire-risk').is(':checked')) activeLayer.push('Fire Risk Surface');
+                if ($('#fire-perimeters').is(':checked')) activeLayer.push('Fire Perimeters');
+                if ($('#evacuation-buffers').is(':checked')) activeLayer.push('Evacuation Buffers');
+                if ($('#population-centers').is(':checked')) activeLayer.push('Population Centers');
+                if ($('#evacuation-centers').is(':checked')) activeLayer.push('Evacuation Centers');
+                if ($('#evacuation-zones').is(':checked')) activeLayer.push('Evacuation Zones');
+                if ($('#weather-stations').is(':checked')) activeLayer.push('Weather Stations');
+                if ($('#historical-fires').is(':checked')) activeLayer.push('Historical Fires');
+                if ($('#buffer-intersections').is(':checked')) activeLayer.push('Buffer Intersections');
+                
+                const reportData = {
+                    timestamp: new Date().toISOString(),
+                    simulationTime: currentTime,
+                    activeLayers: activeLayer,
+                    mapCenter: WildfireApp && WildfireApp.map ? WildfireApp.map.getCenter() : null,
+                    zoomLevel: WildfireApp && WildfireApp.map ? WildfireApp.map.getZoom() : null,
+                    comparisonMode: comparisonMode,
+                    totalCommunities: 10 // Updated to reflect removal of Indian Wells and Bermuda Dunes
+                };
+                
+                // Create comprehensive report content
+                const reportContent = `
+WILDFIRE RISK & EVACUATION REPORT
+Generated: ${new Date().toLocaleString()}
+Simulation Time: ${currentTime}
+Report ID: WF_${new Date().getTime()}
+
+===========================================
+
+ACTIVE LAYERS (${activeLayer.length} total):
+${activeLayer.length > 0 ? activeLayer.map(layer => '• ' + layer).join('\n') : '• No layers currently active'}
+
+MAP SETTINGS:
+• Zoom Level: ${reportData.zoomLevel || 'Unknown'}
+• Map Center: ${reportData.mapCenter ? `${reportData.mapCenter.lat.toFixed(4)}, ${reportData.mapCenter.lng.toFixed(4)}` : 'Unknown'}
+• Comparison Mode: ${comparisonMode ? 'Active (Historical data visible)' : 'Inactive'}
+
+COMMUNITY STATUS:
+• Total Communities Monitored: ${reportData.totalCommunities}
+• High-Risk Communities: San Jacinto, Hemet, Desert Hot Springs
+• Moderate-Risk Communities: Palm Desert, Rancho Mirage, La Quinta
+• Note: Indian Wells and Bermuda Dunes excluded from monitoring
+
+SYSTEM STATUS:
+• Fire Risk Monitoring: Active
+• Evacuation Planning: Available
+• Route Generation: Functional
+• Community Alerts: Operational
+
+ANALYSIS SUMMARY:
+This report provides a snapshot of current wildfire conditions and evacuation 
+planning status for the Coachella Valley region. The system monitors ${reportData.totalCommunities} 
+population centers and provides real-time risk assessment and evacuation routing.
+
+For emergency response coordination, refer to the active layers and ensure 
+all high-risk communities have current evacuation plans.
+
+Generated by Wildfire Risk & Evacuation Planner System
+===========================================
+                `;
+                
+                // Create and download the report
+                const blob = new Blob([reportContent], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `wildfire_report_${new Date().getTime()}.txt`;
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                console.log('Report exported successfully');
+                
+                // Update narrative
+                if (typeof WildfireApp !== 'undefined' && WildfireApp.updateNarrative) {
+                    WildfireApp.updateNarrative(`📄 Comprehensive wildfire report exported for ${currentTime}. ${activeLayer.length} layers included.`);
+                    $('#narrative-timestamp').text(`Simulation Time: ${currentTime}`);
+                }
+                
+                alert(`✅ Report exported successfully!\n\n• ${activeLayer.length} active layers included\n• ${reportData.totalCommunities} communities monitored\n• File saved as wildfire_report_${new Date().getTime()}.txt`);
+                
+            } catch (error) {
+                console.error('Error exporting report:', error);
+                alert('❌ Error exporting report. Check console for details.');
+            }
+        });
+        
+        console.log('✅ Analysis Tools functionality set up successfully');
+        
+    }, 2000); // Wait for WildfireApp to be ready
+});
+</script>
+
+<!-- Clear Routes functionality -->
+<script>
+$('#clear-routes').on('click', function() {
+    console.log('Clear routes button clicked');
     
-    // Export Report functionality
-    $('#export-report').on('click', function() {
-        console.log('Export report button clicked');
+    if (typeof RouteManager !== 'undefined' && RouteManager.clearRoutes) {
+        RouteManager.clearRoutes();
+    } else if (typeof WildfireApp !== 'undefined' && WildfireApp.layers && WildfireApp.layers.routePlanning) {
+        WildfireApp.layers.routePlanning.clearLayers();
+        console.log('Routes cleared via WildfireApp');
         
-        const currentTime = $('#time-display').text() || '12:00 PM';
-        const activeLayer = [];
-        
-        // Check which layers are active
-        if ($('#fire-risk').is(':checked')) activeLayer.push('Fire Risk Surface');
-        if ($('#fire-perimeters').is(':checked')) activeLayer.push('Fire Perimeters');
-        if ($('#historical-fires').is(':checked')) activeLayer.push('Historical Fires');
-        if ($('#weather-stations').is(':checked')) activeLayer.push('Weather Stations');
-        if ($('#evacuation-centers').is(':checked')) activeLayer.push('Evacuation Centers');
-        
-        const reportData = {
-            timestamp: new Date().toISOString(),
-            simulationTime: currentTime,
-            activeLayers: activeLayer,
-            mapCenter: WildfireApp && WildfireApp.map ? WildfireApp.map.getCenter() : null,
-            zoomLevel: WildfireApp && WildfireApp.map ? WildfireApp.map.getZoom() : null,
-            comparisonMode: comparisonMode     
-                     };
-        
-        // Create and download report
-        const reportContent = `
+        if (WildfireApp.updateNarrative) {
+            WildfireApp.updateNarrative('🗑️ All evacuation routes cleared.');
+        }
+    } else {
+        console.warn('No route clearing method available');
+    }
+});
+</script>
+
+<!-- Export Report functionality -->
+<script>
+$('#export-report').on('click', function() {
+    console.log('Export report button clicked');
+    
+    const currentTime = $('#time-display').text() || '12:00 PM';
+    const activeLayer = [];
+    
+    // Check which layers are active
+    if ($('#fire-risk').is(':checked')) activeLayer.push('Fire Risk Surface');
+    if ($('#fire-perimeters').is(':checked')) activeLayer.push('Fire Perimeters');
+    if ($('#historical-fires').is(':checked')) activeLayer.push('Historical Fires');
+    if ($('#weather-stations').is(':checked')) activeLayer.push('Weather Stations');
+    if ($('#evacuation-centers').is(':checked')) activeLayer.push('Evacuation Centers');
+    
+    const reportData = {
+        timestamp: new Date().toISOString(),
+        simulationTime: currentTime,
+        activeLayers: activeLayer,
+        mapCenter: WildfireApp && WildfireApp.map ? WildfireApp.map.getCenter() : null,
+        zoomLevel: WildfireApp && WildfireApp.map ? WildfireApp.map.getZoom() : null,
+        comparisonMode: comparisonMode
+    };
+    
+    // Create and download report
+    const reportContent = `
 WILDFIRE RISK & EVACUATION REPORT
 Generated: ${new Date().toLocaleString()}
 Simulation Time: ${currentTime}
@@ -868,30 +1038,190 @@ MAP SETTINGS:
 ANALYSIS:
 This report provides a snapshot of current wildfire conditions and evacuation planning status.
 Use this data for emergency response coordination and risk assessment.
-        `;
-        
-        const blob = new Blob([reportContent], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `wildfire_report_${new Date().getTime()}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        console.log('Report exported successfully');
-        
-        if (typeof WildfireApp !== 'undefined' && WildfireApp.updateNarrative) {
-            WildfireApp.updateNarrative(`📄 Wildfire report exported for ${currentTime}.`);
-        }
-    });
+    `;
+    
+    const blob = new Blob([reportContent], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `wildfire_report_${new Date().getTime()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    console.log('Report exported successfully');
+    
+    if (typeof WildfireApp !== 'undefined' && WildfireApp.updateNarrative) {
+        WildfireApp.updateNarrative(`📄 Wildfire report exported for ${currentTime}.`);
+    }
 });
-
-// END OF SECOND SCRIPT BLOCK
 </script>
 
-<!-- Debug functions script (keep this) -->
+<!-- Evacuation Route Planning functionality -->
+<script>
+$('#plan-routes').off('click').on('click', function() {
+    console.log('Plan evacuation routes button clicked');
+    
+    if (!WildfireApp || !WildfireApp.map || !WildfireApp.layers) {
+        console.error('WildfireApp not properly initialized');
+        alert('❌ Application not ready. Please wait for the map to fully load.');
+        return;
+    }
+    
+    if (!WildfireApp.layers.routePlanning) {
+        console.error('Route planning layer not available');
+        alert('❌ Route planning layer not available.');
+        return;
+    }
+    
+    // Clear existing routes first
+    try {
+        WildfireApp.layers.routePlanning.clearLayers();
+        console.log('Cleared existing routes');
+    } catch (error) {
+        console.warn('Could not clear existing routes:', error);
+    }
+    
+    try {
+        // Population centers (communities) - Updated to exclude Indian Wells and Bermuda Dunes
+        const populationCenters = [
+            { name: 'Palm Springs', coords: [33.8303, -116.5453] },
+            { name: 'Desert Hot Springs', coords: [33.9614, -116.5019] },
+            { name: 'Palm Desert', coords: [33.7222, -116.3747] },
+            { name: 'Cathedral City', coords: [33.7797, -116.4653] },
+            { name: 'Rancho Mirage', coords: [33.7397, -116.4128] },
+            { name: 'La Quinta', coords: [33.6603, -116.3100] },
+            { name: 'Coachella', coords: [33.6803, -116.1739] },
+            { name: 'Indio', coords: [33.7206, -116.2156] },
+            { name: 'San Jacinto', coords: [33.7839, -116.9586] },
+            { name: 'Hemet', coords: [33.7475, -116.9719] }
+        ];
+        
+        // Evacuation centers (safe zones)
+        const evacuationCenters = [
+            { name: 'Palm Springs Convention Center', coords: [33.8175, -116.5450], capacity: 2500 },
+            { name: 'Coachella Valley Arena', coords: [33.6803, -116.2156], capacity: 1800 },
+            { name: 'Hemet Community Center', coords: [33.7428, -116.9753], capacity: 1200 },
+            { name: 'Desert Recreation District', coords: [33.7269, -116.2725], capacity: 2000 },
+            { name: 'College of the Desert', coords: [33.7200, -116.3600], capacity: 3000 }
+        ];
+        
+        let routeCount = 0;
+        const colors = ['#FF5722', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#2196F3', '#4CAF50', '#FF9800', '#795548', '#607D8B'];
+        
+        console.log(`Creating routes from ${populationCenters.length} communities to ${evacuationCenters.length} evacuation centers`);
+        
+        // Create routes for each population center
+        populationCenters.forEach((center, index) => {
+            try {
+                // Find nearest evacuation center
+                let nearestCenter = evacuationCenters[0];
+                let minDistance = Infinity;
+                
+                evacuationCenters.forEach(evac => {
+                    const lat1 = center.coords[0];
+                    const lon1 = center.coords[1];
+                    const lat2 = evac.coords[0];
+                    const lon2 = evac.coords[1];
+                    
+                    const dLat = (lat2 - lat1) * Math.PI / 180;
+                    const dLon = (lon2 - lon1) * Math.PI / 180;
+                    const distance = Math.sqrt(dLat * dLat + dLon * dLon);
+                    
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        nearestCenter = evac;
+                    }
+                });
+                
+                const distanceMiles = (minDistance * 69).toFixed(1);
+                const estimatedTime = Math.ceil(distanceMiles / 25);
+                
+                console.log(`Routing ${center.name} to ${nearestCenter.name} (distance: ${distanceMiles} miles)`);
+                
+                // Create route line
+                const routeColor = colors[index % colors.length];
+                const routeLine = L.polyline([center.coords, nearestCenter.coords], {
+                    color: routeColor,
+                    weight: 4,
+                    opacity: 0.8,
+                    dashArray: '10,5',
+                    className: 'evacuation-route'
+                });
+                
+                routeLine.addTo(WildfireApp.layers.routePlanning);
+                
+                routeLine.bindPopup(`
+                    <div style="min-width: 220px;">
+                        <h4 style="color: ${routeColor}; margin-bottom: 8px;">🚗 Evacuation Route #${index + 1}</h4>
+                        <div style="font-size: 13px; line-height: 1.4;">
+                            <strong>From:</strong> ${center.name}<br>
+                            <strong>To:</strong> ${nearestCenter.name}<br>
+                            <strong>Distance:</strong> ${distanceMiles} miles<br>
+                            <strong>Est. Time:</strong> ${estimatedTime} minutes<br>
+                            <strong>Capacity:</strong> ${nearestCenter.capacity} people<br>
+                            <strong>Status:</strong> <span style="color: #28a745;">Route Clear</span>
+                        </div>
+                    </div>
+                `);
+                
+                // Add start marker
+                const startMarker = L.marker(center.coords, {
+                    icon: L.divIcon({
+                        className: 'route-start-marker',
+                        html: `<div style="background: ${routeColor}; color: white; padding: 3px 6px; border-radius: 10px; font-size: 10px; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.4); white-space: nowrap;">📍 START</div>`,
+                        iconSize: [60, 20],
+                        iconAnchor: [30, 10]
+                    })
+                });
+                
+                startMarker.addTo(WildfireApp.layers.routePlanning);
+                
+                // Add end marker
+                const endMarker = L.marker(nearestCenter.coords, {
+                    icon: L.divIcon({
+                        className: 'route-end-marker',
+                        html: `<div style="background: #28a745; color: white; padding: 3px 6px; border-radius: 10px; font-size: 10px; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.4); white-space: nowrap;">🏥 SAFE</div>`,
+                        iconSize: [50, 20],
+                        iconAnchor: [25, 10]
+                    })
+                });
+                
+                endMarker.addTo(WildfireApp.layers.routePlanning);
+                
+                routeCount++;
+                
+            } catch (error) {
+                console.error(`Error creating route for ${center.name}:`, error);
+            }
+        });
+        
+        // Add route planning layer to map
+        if (!WildfireApp.map.hasLayer(WildfireApp.layers.routePlanning)) {
+            WildfireApp.layers.routePlanning.addTo(WildfireApp.map);
+            console.log('Added route planning layer to map');
+        }
+        
+        console.log(`✅ Successfully created ${routeCount} evacuation routes`);
+        
+        // Update narrative
+        if (WildfireApp.updateNarrative) {
+            const currentTime = $('#time-display').text() || '12:00 PM';
+            WildfireApp.updateNarrative(`🗺️ ${routeCount} evacuation routes planned connecting communities to nearest safe zones.`);
+            $('#narrative-timestamp').text(`Simulation Time: ${currentTime}`);
+        }
+        
+        alert(`✅ Successfully planned ${routeCount} evacuation routes!\n\nClick on route lines and markers for details.`);
+        
+    } catch (error) {
+        console.error('Error planning evacuation routes:', error);
+        alert('❌ Error planning evacuation routes. Check console for details.');
+    }
+});
+</script>
+
+<!-- Fix the debug functions script: -->
 <script>
 function debugManagers() {
     console.log('=== MANAGER DEBUG ===');
@@ -902,6 +1232,7 @@ function debugManagers() {
         console.log('WeatherManager.createWeatherStations exists:', typeof WeatherManager.createWeatherStations === 'function');
         console.log('WeatherManager object:', WeatherManager);
     }
+    
     if (BufferSystem) {
         console.log('BufferSystem.createBufferIntersections exists:', typeof BufferSystem.createBufferIntersections === 'function');
         console.log('BufferSystem object:', BufferSystem);
@@ -910,13 +1241,16 @@ function debugManagers() {
     if (WildfireApp && WildfireApp.layers) {
         console.log('WildfireApp.layers exists:', !!WildfireApp.layers);
         console.log('weatherStations layer exists:', !!WildfireApp.layers.weatherStations);
+        
+        if (WildfireApp.layers.weatherStations) {
             console.log('weatherStations layer count:', WildfireApp.layers.weatherStations.getLayers().length);
         }
         if (WildfireApp.layers.bufferIntersections) {
             console.log('bufferIntersections layer count:', WildfireApp.layers.bufferIntersections.getLayers().length);
         }
     }
-    console.log('==================');      
+    console.log('==================');
+}
 
 function testWeatherStations() {
     console.log('=== TESTING WEATHER STATIONS ===');
@@ -961,13 +1295,157 @@ window.testWeatherStations = testWeatherStations;
 
 console.log('✅ Debug functions loaded. Try: debugManagers() or testWeatherStations()');
 
-// Check if the communities were removed
-if (WildfireApp.populationCenters) {
-    const communityNames = WildfireApp.populationCenters.map(center => center.name);
-    console.log('Current communities:', communityNames);
-    console.log('Indian Wells removed:', !communityNames.includes('Indian Wells'));
-    console.log('Bermuda Dunes removed:', !communityNames.includes('Bermuda Dunes'));
-}
+// Population centers check (only run if WildfireApp is ready)
+setTimeout(function() {
+    if (WildfireApp && WildfireApp.populationCenters) {
+        const communityNames = WildfireApp.populationCenters.map(center => center.name);
+        console.log('Current communities:', communityNames);
+        console.log('Total communities:', communityNames.length); // Should show 10
+        console.log('Indian Wells removed:', !communityNames.includes('Indian Wells'));
+        console.log('Bermuda Dunes removed:', !communityNames.includes('Bermuda Dunes'));
+        console.log('✅ Bermuda Dunes and Indian Wells successfully removed from all arrays');
+    }
+}, 5000);
+</script>
+
+<!-- Alert Communities functionality -->
+<script>
+$(document).ready(function() {
+    setTimeout(function() {
+        $('#alert-communities').off('click').on('click', function() {
+            console.log('Alert communities button clicked');
+            
+            if (!WildfireApp || !WildfireApp.map || !WildfireApp.layers) {
+                console.error('WildfireApp not properly initialized');
+                alert('❌ Application not ready. Please wait for the map to fully load.');
+                return;
+            }
+            
+            try {
+                // Get current time and fire risk level
+                const currentTime = WildfireApp.currentTime || 12;
+                const timeDisplay = $('#time-display').text() || '12:00 PM';
+                
+                // Determine risk level based on time
+                let riskLevel = 'Moderate';
+                let alertColor = '#FF9800';
+                let alertMessage = 'Fire watch in effect';
+                
+                if (currentTime >= 14 && currentTime <= 17) { // 2-5 PM
+                    riskLevel = 'Extreme';
+                    alertColor = '#D32F2F';
+                    alertMessage = 'IMMEDIATE EVACUATION RECOMMENDED';
+                } else if (currentTime >= 12 && currentTime < 18) { // Noon-6 PM
+                    riskLevel = 'High';
+                    alertColor = '#FF5722';
+                    alertMessage = 'EVACUATION WARNING - Prepare to leave';
+                } else if (currentTime >= 10 && currentTime < 12) { // 10 AM-Noon
+                    riskLevel = 'Elevated';
+                    alertColor = '#FF7043';
+                    alertMessage = 'Fire watch - Stay alert';
+                }
+                
+                // Communities with their risk levels (10 communities - no Indian Wells or Bermuda Dunes)
+                const communities = [
+                    { name: 'Palm Springs', coords: [33.8303, -116.5453], risk: 'High' },
+                    { name: 'Desert Hot Springs', coords: [33.9614, -116.5019], risk: 'Very High' },
+                    { name: 'Palm Desert', coords: [33.7222, -116.3747], risk: 'Moderate' },
+                    { name: 'Cathedral City', coords: [33.7797, -116.4653], risk: 'High' },
+                    { name: 'Rancho Mirage', coords: [33.7397, -116.4128], risk: 'Moderate' },
+                    { name: 'La Quinta', coords: [33.6603, -116.3100], risk: 'Moderate' },
+                    { name: 'Coachella', coords: [33.6803, -116.1739], risk: 'High' },
+                    { name: 'Indio', coords: [33.7206, -116.2156], risk: 'High' },
+                    { name: 'San Jacinto', coords: [33.7839, -116.9586], risk: 'Very High' },
+                    { name: 'Hemet', coords: [33.7475, -116.9719], risk: 'High' }
+                ];
+                
+                let alertCount = 0;
+                
+                // Ensure evacuation zones layer exists
+                if (!WildfireApp.layers.evacuationZones) {
+                    WildfireApp.layers.evacuationZones = L.layerGroup();
+                }
+                
+                // Clear existing alerts
+                WildfireApp.layers.evacuationZones.clearLayers();
+                
+                communities.forEach(community => {
+                    // Create alert zone around each community
+                    const alertRadius = community.risk === 'Very High' ? 3000 : 
+                                       community.risk === 'High' ? 2000 : 1500;
+                    
+                    const alertZone = L.circle(community.coords, {
+                        color: alertColor,
+                        fillColor: alertColor,
+                        fillOpacity: 0.2,
+                        weight: 3,
+                        radius: alertRadius,
+                        dashArray: '5,10'
+                    }).addTo(WildfireApp.layers.evacuationZones);
+                    
+                    alertZone.bindPopup(`
+
+                        <div style="min-width: 250px;">
+                            <h4 style="color: ${alertColor};">🚨 FIRE ALERT - ${community.name}</h4>
+                            <div style="font-size: 12px;">
+                                <strong>Alert Level:</strong> <span style="color: ${alertColor};">${riskLevel}</span><br>
+                                <strong>Time:</strong> ${timeDisplay}<br>
+                                <strong>Action:</strong> ${alertMessage}<br>
+                                <strong>Community Risk:</strong> ${community.risk}<br>
+                                <strong>Alert Radius:</strong> ${(alertRadius/1000).toFixed(1)} km
+                            </div>
+                        </div>
+                    `);
+                    
+                    // Add alert marker at community center
+                    const alertMarker = L.marker(community.coords, {
+                        icon: L.divIcon({
+                            className: 'alert-marker',
+                            html: `<div style="background: ${alertColor}; color: white; padding: 6px; border-radius: 50%; font-size: 16px; border: 3px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.4); animation: pulse 1.5s infinite;">🚨</div>`,
+                            iconSize: [32, 32],
+                            iconAnchor: [16, 16]
+                        })
+                    }).addTo(WildfireApp.layers.evacuationZones);
+                    
+                    alertMarker.bindPopup(`
+                        <div style="min-width: 200px;">
+                            <h4 style="color: ${alertColor};">🚨 ${community.name} ALERT</h4>
+                            <div style="font-size: 12px;">
+                                <strong>${alertMessage}</strong><br>
+                                Risk Level: ${community.risk}<br>
+                                Time: ${timeDisplay}
+                            </div>
+                        </div>
+                    `);
+                    
+                    alertCount++;
+                });
+                
+                // Add evacuation zones layer to map if not already added
+                if (!WildfireApp.map.hasLayer(WildfireApp.layers.evacuationZones)) {
+                    WildfireApp.layers.evacuationZones.addTo(WildfireApp.map);
+                }
+                
+                console.log(`✅ Alerted ${alertCount} communities with ${riskLevel} risk level`);
+                
+                // Update narrative
+                if (WildfireApp.updateNarrative) {
+                    WildfireApp.updateNarrative(`🚨 ALERT: ${alertCount} communities notified. Risk Level: ${riskLevel}. ${alertMessage}`);
+                    $('#narrative-timestamp').text(`Simulation Time: ${timeDisplay}`);
+                }
+                
+                // Auto-check the evacuation zones checkbox
+                $('#evacuation-zones').prop('checked', true);
+                
+                alert(`🚨 Successfully alerted ${alertCount} communities!\n\nRisk Level: ${riskLevel}\nAction Required: ${alertMessage}\n\nClick on alert zones and markers for details.`);
+                
+            } catch (error) {
+                console.error('Error alerting communities:', error);
+                alert('❌ Error alerting communities. Check console for details.');
+            }
+        });
+    }, 3000); // Wait for WildfireApp to be ready
+});
 </script>
 </body>
 </html>

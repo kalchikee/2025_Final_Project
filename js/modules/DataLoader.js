@@ -30,7 +30,7 @@ const DataLoader = {
                 }
                 
                 if (typeof NarrativeManager !== 'undefined') {
-                    NarrativeManager.updateNarrative('🔥 Fire perimeters loaded. 🏘️ Monitoring 20 population centers including San Jacinto and Hemet for evacuation analysis...');
+                    NarrativeManager.updateNarrative('🔥 Fire perimeters loaded. 🏘️ Monitoring 10 population centers for evacuation analysis...');
                 }
             } catch (error) {
                 console.error('Error in delayed data loading:', error);

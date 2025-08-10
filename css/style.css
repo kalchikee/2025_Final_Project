@@ -56,8 +56,14 @@ body {
 }
 
 #narrative-timestamp {
-    font-size: 12px;
-    color: #ccc;
+    font-weight: bold;
+    color: #2196F3;
+    font-size: 14px;
+    margin-top: 8px;
+    padding: 4px 8px;
+    background: rgba(33, 150, 243, 0.1);
+    border-radius: 4px;
+    text-align: center;
 }
 
 .control-group {
@@ -326,5 +332,37 @@ body {
     padding: 10px 20px;
     border-radius: 4px;
     font-size: 12px;
+}
+
+/* Add this to your style.css file: */
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.alert-marker {
+    animation: pulse 1.5s infinite;
+}
+
+/* Enhanced route marker styles */
+.route-start-marker,
+.route-end-marker {
+    transition: transform 0.2s ease;
+}
+
+.route-start-marker:hover,
+.route-end-marker:hover {
+    transform: scale(1.1);
 }
 

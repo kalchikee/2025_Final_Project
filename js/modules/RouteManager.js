@@ -599,3 +599,17 @@ const RouteManager = {
     }
 };
 
+const populationCenters = [
+    { name: 'Palm Springs', coords: [33.8303, -116.5453] },
+    { name: 'Desert Hot Springs', coords: [33.9614, -116.5019] },
+    { name: 'Palm Desert', coords: [33.7222, -116.3747] },
+    { name: 'Cathedral City', coords: [33.7797, -116.4653] },
+    { name: 'Rancho Mirage', coords: [33.7397, -116.4128] },
+    { name: 'La Quinta', coords: [33.6603, -116.3100] },
+    { name: 'Coachella', coords: [33.6803, -116.1739] },
+    { name: 'Indio', coords: [33.7206, -116.2156] },
+    { name: 'San Jacinto', coords: [33.7839, -116.9586] },
+    { name: 'Hemet', coords: [33.7475, -116.9719] }
+    // Bermuda Dunes and Indian Wells removed
+];
+
