@@ -5,168 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wildfire Risk & Evacuation Planner</title>
     
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet CSS - Use CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+          crossorigin=""/>
     
     <!-- Custom CSS -->
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: Arial, sans-serif;
-            height: 100vh;
-        }
-        
-        #map-container {
-            position: relative;
-            height: 100vh;
-            width: 100vw;
-        }
-        
-        #map {
-            height: 100%;
-            width: 100%;
-        }
-        
-        #control-panel {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            width: 350px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            z-index: 1000;
-            max-height: calc(100vh - 20px);
-            overflow-y: auto;
-        }
-        
-        #narrative-panel {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            right: 10px;
-            max-width: 600px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            z-index: 1000;
-        }
-        
-        #narrative-text {
-            font-size: 14px;
-            line-height: 1.4;
-            margin-bottom: 10px;
-        }
-        
-        #narrative-timestamp {
-            font-size: 12px;
-            color: #ccc;
-        }
-        
-        .control-group {
-            margin-bottom: 15px;
-        }
-        
-        .control-group h4 {
-            color: #d32f2f;
-            margin-bottom: 10px;
-        }
-        
-        .control-group label {
-            display: block;
-            margin-bottom: 5px;
-            cursor: pointer;
-        }
-        
-        #time-slider {
-            width: 100%;
-            margin: 5px 0;
-            height: 8px;
-            border-radius: 4px;
-            outline: none;
-            background: linear-gradient(to right, #4caf50, #ffeb3b, #f44336);
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            flex: 1;
-        }
-        
-        .btn-primary {
-            background: #2196F3;
-            color: white;
-        }
-        
-        .btn-danger {
-            background: #d32f2f;
-            color: white;
-        }
-        
-        .btn-warning {
-            background: #FF9800;
-            color: white;
-        }
-        
-        .btn:hover {
-            opacity: 0.8;
-        }
-        
-        .zoom-info {
-            background: rgba(255, 255, 255, 0.8);
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            box-shadow: 0 1px 5px rgba(0,0,0,0.2);
-        }
-        
-        #zoom-level {
-            font-weight: bold;
-        }
-        
-        #layer-info {
-            font-size: 11px;
-            color: #666;
-            margin-top: 2px;
-        }
-        
-        .risk-legend {
-            margin-top: 10px;
-            padding: 10px;
-            background: #f5f5f5;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 3px;
-        }
-        
-        .legend-color {
-            width: 15px;
-            height: 15px;
-            margin-right: 8px;
-            border-radius: 2px;
-        }
-    </style>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div id="map-container">
@@ -176,14 +21,21 @@
         <div id="control-panel">
             <h3>🔥 Wildfire Risk & Evacuation Planner</h3>
             
-            <!-- Time Controls -->
+            <!-- Time Controls with Integrated Animation -->
             <div class="control-group">
                 <h4>⏰ Temporal Controls</h4>
-                <label for="time-slider">Time (24hr forecast):</label>
-                <input type="range" id="time-slider" min="0" max="23" value="0">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
-                    <span id="time-display">06:00</span>
-                    <button id="comparison-toggle" class="btn btn-primary">Historical Comparison</button>
+                <div class="time-display">
+                    <span id="time-display">06:00 AM</span>
+                </div>
+                <input type="range" id="time-slider" min="0" max="17" value="0" step="1">
+                <div class="animation-controls">
+                    <button id="play-toggle" class="btn btn-primary">▶️ Play Animation</button>
+                    <div class="speed-controls">
+                        <button id="speed-fast" class="btn btn-warning" style="font-size: 11px;">Fast (0.5s)</button>
+                        <button id="speed-normal" class="btn btn-primary" style="font-size: 11px;">Normal (1s)</button>
+                        <button id="speed-slow" class="btn btn-primary" style="font-size: 11px;">Slow (2s)</button>
+                    </div>
+                    <span id="speed-display" style="font-size: 11px; color: #666; margin-top: 3px; text-align: center;">Normal (1s)</span>
                 </div>
             </div>
             
@@ -191,24 +43,21 @@
             <div class="control-group">
                 <h4>🗺️ Map Layers</h4>
                 <label><input type="checkbox" id="fire-risk" checked> Fire Risk Surface</label>
-                <label><input type="checkbox" id="weather-stations"> Weather Stations (Zoom 9+)</label>
-                <label><input type="checkbox" id="evacuation-centers"> Evacuation Centers (Zoom 8+)</label>
-                <label><input type="checkbox" id="roads"> Road Network (Zoom 11+)</label>
+                <label><input type="checkbox" id="fire-perimeters" checked> Fire Perimeters</label>
+                <label><input type="checkbox" id="evacuation-buffers" checked> Evacuation Buffers</label>
+                <label><input type="checkbox" id="population-centers" checked> Population Centers</label>
+                <label><input type="checkbox" id="evacuation-centers"> Evacuation Centers</label>
+                <label><input type="checkbox" id="weather-stations"> Weather Stations</label>
+                <label><input type="checkbox" id="historical-fires"> Historical Fires</label>
+                <label><input type="checkbox" id="buffer-intersections"> Buffer Intersections</label>
             </div>
             
-            <!-- Route Planning -->
+            <!-- Analysis Tools -->
             <div class="control-group">
-                <h4>🚗 Evacuation Routes</h4>
-                <div class="button-group">
-                    <button id="clear-routes" class="btn btn-warning">Clear Routes</button>
-                </div>
-                <small>Click evacuation centers to plan routes</small>
-            </div>
-            
-            <!-- Export Controls -->
-            <div class="control-group">
-                <h4>📊 Assessment Tools</h4>
-                <button id="export-report" class="btn btn-danger" style="width: 100%;">Export Risk Assessment</button>
+                <h4>📊 Analysis Tools</h4>
+                <button id="comparison-toggle" class="btn btn-primary">Historical Comparison</button>
+                <button id="clear-routes" class="btn btn-secondary">Clear Routes</button>
+                <button id="export-report" class="btn btn-success">Export Report</button>
             </div>
             
             <!-- Risk Legend -->
@@ -245,8 +94,880 @@
     </div>
 
     <!-- Scripts -->
+    <!-- External Libraries -->
     <script src="lib/jquery-3.5.1.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="js/wildfire-app.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+            crossorigin=""></script>
+
+    <!-- Core WildfireApp FIRST -->
+    <script src="js/core/WildfireApp.js"></script>
+
+    <!-- Other core modules -->
+    <script src="js/core/MapManager.js"></script>
+    <script src="js/modules/BufferSystem.js"></script>
+
+    <!-- Managers in dependency order -->
+    <script src="js/modules/NarrativeManager.js"></script>
+    <script src="js/modules/DataLoader.js"></script>
+    <script src="js/modules/PopulationManager.js"></script>
+    <script src="js/modules/FireManager.js"></script>
+    <script src="js/modules/WeatherManager.js"></script>
+    <script src="js/modules/EvacuationManager.js"></script>
+    <script src="js/modules/RouteManager.js"></script>
+    <script src="js/modules/AnimationManager.js"></script>
+    <script src="js/modules/LayerManager.js"></script>
+    <script src="js/modules/ComparisonManager.js"></script>
+
+    <!-- Event handlers LAST -->
+    <script src="js/modules/EventHandlers.js"></script>
+
+    <!-- App initialization and fallback functionality -->
+    <script src="js/app.js"></script>
+
+    <!-- Consolidated initialization script -->
+    <script>
+    $(document).ready(function() {
+        // Safety check and function definitions
+        if (typeof window.updateTimeDisplay === 'undefined') {
+            window.updateTimeDisplay = function(timeValue) {
+                console.warn('updateTimeDisplay called before proper initialization');
+                const times = [
+                    '06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM',
+                    '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM',
+                    '06:00 PM', '07:00 PM', '08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM'
+                ];
+                const displayTime = times[timeValue] || '12:00 PM';
+                $('#time-display').text(displayTime);
+            };
+        }
+        
+        setTimeout(function() {
+            console.log('=== Running consolidated fallback initialization ===');
+            
+            const waitForMap = function(callback, maxAttempts = 50) {
+                let attempts = 0;
+                const checkMap = function() {
+                    attempts++;
+                    console.log(`Checking for WildfireApp.map (attempt ${attempts})`);
+                    
+                    if (typeof WildfireApp !== 'undefined' && WildfireApp.map) {
+                        console.log('✅ WildfireApp.map is available');
+                        callback();
+                    } else if (attempts < maxAttempts) {
+                        console.log('⏳ WildfireApp.map not ready yet, retrying...');
+                        setTimeout(checkMap, 200);
+                    } else {
+                        console.error('❌ WildfireApp.map failed to initialize after max attempts');
+                        if (typeof WildfireApp !== 'undefined' && !WildfireApp.map) {
+                            console.log('Attempting to initialize WildfireApp...');
+                            WildfireApp.init();
+                            setTimeout(() => {
+                                if (WildfireApp.map) {
+                                    callback();
+                                } else {
+                                    console.error('Failed to initialize WildfireApp.map');
+                                }
+                            }, 1000);
+                        }
+                    }
+                };
+                checkMap();
+            };
+            
+            waitForMap(function() {
+                console.log('🎯 WildfireApp.map confirmed available, proceeding with initialization...');
+                initializeFallbackManagers();
+            });
+            
+            function initializeFallbackManagers() {
+                // Create missing managers FIRST
+                if (typeof WeatherManager === 'undefined') {
+                    console.log('Creating fallback WeatherManager');
+                    window.WeatherManager = {
+                        init: function() {
+                            console.log('WeatherManager initialized');
+                        },
+                        createWeatherStations: function() {
+                            if (!WildfireApp.layers || !WildfireApp.layers.weatherStations) {
+                                console.warn('Weather stations layer not available');
+                                return;
+                            }
+                            
+                            console.log('Creating weather stations...');
+                            WildfireApp.layers.weatherStations.clearLayers();
+                            
+                            const stations = [
+                                { name: 'Palm Springs Station', coordinates: [33.8303, -116.5453], temp: 95, humidity: 15, windSpeed: 12, windDirection: 'SW' },
+                                { name: 'Desert Hot Springs Station', coordinates: [33.9614, -116.5019], temp: 98, humidity: 12, windSpeed: 18, windDirection: 'W' },
+                                { name: 'San Jacinto Station', coordinates: [33.7839, -116.9586], temp: 92, humidity: 18, windSpeed: 15, windDirection: 'SW' },
+                                { name: 'Hemet Station', coordinates: [33.7475, -116.9719], temp: 89, humidity: 22, windSpeed: 10, windDirection: 'S' }
+                            ];
+                            
+                            let successCount = 0;
+                            stations.forEach(station => {
+                                try {
+                                    const marker = L.marker(station.coordinates, {
+                                        icon: L.divIcon({
+                                            className: 'weather-station-icon',
+                                            html: '<div style="background: #00BCD4; color: white; padding: 6px; border-radius: 50%; text-align: center; font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.3); width: 28px; height: 28px; line-height: 16px;">🌡️</div>',
+                                            iconSize: [28, 28],
+                                            iconAnchor: [14, 14]
+                                        })
+                                    }).addTo(WildfireApp.layers.weatherStations);
+                                    
+                                    marker.bindPopup(`
+                                        <div style="min-width: 200px;">
+                                            <h4 style="color: #00BCD4;">🌡️ ${station.name}</h4>
+                                            <div style="font-size: 12px;">
+                                                <strong>Temperature:</strong> ${station.temp}°F<br>
+                                                <strong>Humidity:</strong> ${station.humidity}%<br>
+                                                <strong>Wind:</strong> ${station.windSpeed} mph ${station.windDirection}<br>
+                                                <strong>Fire Risk:</strong> ${station.humidity < 20 ? 'High' : 'Moderate'}
+                                            </div>
+                                        </div>
+                                    `);
+                                    successCount++;
+                                } catch (error) {
+                                    console.error(`Error creating weather station ${station.name}:`, error);
+                                }
+                            });
+                            
+                            console.log(`✅ Created ${successCount} weather stations`);
+                            return successCount;
+                        }
+                    };
+                }
+                
+                if (typeof BufferSystem === 'undefined') {
+                    console.log('Creating fallback BufferSystem');
+                    window.BufferSystem = {
+                        init: function() {
+                            console.log('BufferSystem initialized');
+                        },
+                        createBufferIntersections: function() {
+                            if (!WildfireApp.layers || !WildfireApp.layers.bufferIntersections) {
+                                console.warn('Buffer intersections layer not available');
+                                return;
+                            }
+                            
+                            console.log('Creating buffer intersections...');
+                            WildfireApp.layers.bufferIntersections.clearLayers();
+                            
+                            const bufferZones = [
+                                { name: 'San Jacinto Fire Buffer', center: [33.8144, -116.9428], radius: 2000, color: '#FF6B35' },
+                                { name: 'Desert Hills Fire Buffer', center: [33.7500, -116.4000], radius: 2500, color: '#FF8E53' },
+                                { name: 'Hemet Protection Buffer', center: [33.7475, -116.9719], radius: 1800, color: '#FF9068' }
+                            ];
+                            
+                            let successCount = 0;
+                            bufferZones.forEach(zone => {
+                                try {
+                                    const circle = L.circle(zone.center, {
+                                        color: zone.color,
+                                        fillColor: zone.color,
+                                        fillOpacity: 0.3,
+                                        weight: 2,
+                                        radius: zone.radius
+                                    }).addTo(WildfireApp.layers.bufferIntersections);
+                                    
+                                    circle.bindPopup(`
+                                        <div style="min-width: 200px;">
+                                            <h4 style="color: ${zone.color};">⚠️ ${zone.name}</h4>
+                                            <div style="font-size: 12px;">
+                                                <strong>Buffer Radius:</strong> ${(zone.radius/1000).toFixed(1)} km<br>
+                                                <strong>Purpose:</strong> Fire containment zone<br>
+                                                <strong>Status:</strong> Active monitoring<br>
+                                                <strong>Risk Level:</strong> Moderate to High
+                                            </div>
+                                        </div>
+                                    `);
+                                    successCount++;
+                                } catch (error) {
+                                    console.error(`Error creating buffer zone ${zone.name}:`, error);
+                                }
+                            });
+                            
+                            console.log(`✅ Created ${successCount} buffer intersections`);
+                            return successCount;
+                        }
+                    };
+                }
+                
+                // Create historical fires
+                if (!window.createHistoricalFires) {
+                    console.log('Creating createHistoricalFires function');
+                    window.createHistoricalFires = function() {
+                        if (!WildfireApp.layers || !WildfireApp.layers.historicalFires) {
+                            console.warn('Historical fires layer not available');
+                            return 0;
+                        }
+                        
+                        console.log('Creating historical fires...');
+                        WildfireApp.layers.historicalFires.clearLayers();
+                        
+                        const fires = [
+                            {name: 'Apple Fire (2020)', coordinates: [33.8500, -116.9000], acres: 33424, year: 2020, cause: 'Vehicle'},
+                            {name: 'Fairview Fire (2022)', coordinates: [33.7200, -116.8500], acres: 2707, year: 2022, cause: 'Electrical'},
+                            {name: 'Rabbit Fire (2021)', coordinates: [33.6800, -116.7500], acres: 8894, year: 2021, cause: 'Undetermined'},
+                            {name: 'Sand Fire (2019)', coordinates: [33.8800, -116.6000], acres: 1500, year: 2019, cause: 'Lightning'}
+                        ];
+                        
+                        let successCount = 0;
+                        fires.forEach(fire => {
+                            try {
+                                const circle = L.circle(fire.coordinates, {
+                                    color: '#8B4513',
+                                    fillColor: '#D2691E',
+                                    fillOpacity: 0.4,
+                                    weight: 2,
+                                    radius: Math.sqrt(fire.acres) * 10
+                                }).addTo(WildfireApp.layers.historicalFires);
+                                
+                                circle.bindPopup(`
+                                    <div style="min-width: 200px;">
+                                        <h4 style="color: #8B4513;">🔥 ${fire.name}</h4>
+                                        <div style="font-size: 12px;">
+                                            <strong>Year:</strong> ${fire.year}<br>
+                                            <strong>Size:</strong> ${fire.acres.toLocaleString()} acres<br>
+                                            <strong>Cause:</strong> ${fire.cause}<br>
+                                            <strong>Status:</strong> Contained
+                                        </div>
+                                    </div>
+                                `);
+                                successCount++;
+                            } catch (error) {
+                                console.error(`Error creating historical fire ${fire.name}:`, error);
+                            }
+                        });
+                        
+                        console.log(`Created ${successCount} historical fires`);
+                        return successCount;
+                    };
+                }
+                
+                // Create evacuation centers
+                if (!window.createEvacuationCenters) {
+                    console.log('Creating createEvacuationCenters function');
+                    window.createEvacuationCenters = function() {
+                        if (!WildfireApp.layers || !WildfireApp.layers.evacuationCenters) {
+                            console.warn('Evacuation centers layer not available');
+                            return 0;
+                        }
+                        
+                        console.log('Creating evacuation centers...');
+                        WildfireApp.layers.evacuationCenters.clearLayers();
+                        
+                        const evacuationCenters = [
+                            { name: 'Desert Recreation District', coordinates: [33.7269, -116.2725], capacity: 2000, facilities: ['Medical', 'Pet-Friendly', 'Wheelchair Accessible'], status: 'Available' },
+                            { name: 'Palm Desert Civic Center', coordinates: [33.7506, -116.3756], capacity: 1500, facilities: ['Medical', 'Food Service', 'Wheelchair Accessible'], status: 'Available' },
+                            { name: 'College of the Desert', coordinates: [33.7200, -116.3600], capacity: 3000, facilities: ['Large Capacity', 'Medical', 'Pet-Friendly', 'Wheelchair Accessible'], status: 'Available' },
+                            { name: 'San Jacinto Community Center', coordinates: [33.7839, -116.9586], capacity: 800, facilities: ['Medical', 'Food Service'], status: 'Available' },
+                            { name: 'Hemet High School', coordinates: [33.7475, -116.9719], capacity: 1200, facilities: ['Large Capacity', 'Medical', 'Pet-Friendly'], status: 'Available' }
+                        ];
+                        
+                        let successCount = 0;
+                        evacuationCenters.forEach(center => {
+                            try {
+                                const marker = L.marker(center.coordinates, {
+                                    icon: L.divIcon({
+                                        className: 'evacuation-center-icon',
+                                        html: '<div style="background: #2196F3; color: white; padding: 8px; border-radius: 8px; text-align: center; font-size: 16px; box-shadow: 0 3px 8px rgba(0,0,0,0.4); width: 32px; height: 32px; line-height: 16px; border: 2px solid white;">🏛️</div>',
+                                        iconSize: [32, 32],
+                                        iconAnchor: [16, 16]
+                                    })
+                                }).addTo(WildfireApp.layers.evacuationCenters);
+                                
+                                marker.bindPopup(`
+                                    <div style="min-width: 250px;">
+                                        <h4 style="color: #2196F3;">🏛️ ${center.name}</h4>
+                                        <div style="font-size: 12px; line-height: 1.4;">
+                                            <strong>Capacity:</strong> ${center.capacity.toLocaleString()} people<br>
+                                            <strong>Status:</strong> <span style="color: green;">${center.status}</span><br>
+                                            <strong>Facilities:</strong> ${center.facilities.join(', ')}
+                                        </div>
+                                    </div>
+                                `);
+                                successCount++;
+                            } catch (error) {
+                                console.error(`Error creating evacuation center ${center.name}:`, error);
+                            }
+                        });
+                        
+                        console.log(`Created ${successCount} evacuation centers`);
+                        return successCount;
+                    };
+                }
+                
+                // Create evacuation buffers
+                if (!window.createEvacuationBuffers) {
+                    console.log('Creating createEvacuationBuffers function');
+                    window.createEvacuationBuffers = function() {
+                        if (!WildfireApp.layers || !WildfireApp.layers.evacuationZones) {
+                            console.warn('Evacuation zones layer not available');
+                            return 0;
+                        }
+                        
+                        console.log('Creating evacuation buffers...');
+                        WildfireApp.layers.evacuationZones.clearLayers();
+                        
+                        const fireAreas = [
+                            { name: 'San Jacinto Fire Evacuation Zone', center: [33.8144, -116.9428], radius: 3000, level: 'Mandatory' },
+                            { name: 'Desert Hills Fire Evacuation Zone', center: [33.7500, -116.4000], radius: 2500, level: 'Warning' }
+                        ];
+                        
+                        let successCount = 0;
+                        fireAreas.forEach(area => {
+                            try {
+                                const color = area.level === 'Mandatory' ? '#D32F2F' : '#FF9800';
+                                
+                                const circle = L.circle(area.center, {
+                                    color: color,
+                                    fillColor: color,
+                                    fillOpacity: 0.2,
+                                    weight: 3,
+                                    radius: area.radius
+                                }).addTo(WildfireApp.layers.evacuationZones);
+                                
+                                circle.bindPopup(`
+                                    <div style="min-width: 200px;">
+                                        <h4 style="color: ${color};">⚠️ ${area.name}</h4>
+                                        <div style="font-size: 12px;">
+                                            <strong>Evacuation Level:</strong> ${area.level}<br>
+                                            <strong>Buffer Radius:</strong> ${(area.radius/1000).toFixed(1)} km<br>
+                                            <strong>Status:</strong> Active<br>
+                                            ${area.level === 'Mandatory' ? '<strong style="color: red;">EVACUATE NOW</strong>' : '<strong style="color: orange;">BE PREPARED TO EVACUATE</strong>'}
+                                        </div>
+                                    </div>
+                                `);
+                                successCount++;
+                            } catch (error) {
+                                console.error(`Error creating evacuation buffer ${area.name}:`, error);
+                            }
+                        });
+                        
+                        console.log(`Created ${successCount} evacuation buffers`);
+                        return successCount;
+                    };
+                }
+                
+                // Initialize managers
+                try { 
+                    if (WeatherManager && WeatherManager.init) WeatherManager.init(); 
+                } catch (e) { 
+                    console.warn('WeatherManager init failed:', e); 
+                }
+                
+                try { 
+                    if (BufferSystem && BufferSystem.init) BufferSystem.init(); 
+                } catch (e) { 
+                    console.warn('BufferSystem init failed:', e); 
+                }
+                
+                // Create data
+                try {
+                    createHistoricalFires();
+                    createEvacuationCenters(); 
+                    createEvacuationBuffers();
+                } catch (e) {
+                    console.error('Error creating data:', e);
+                }
+                
+                // Set up layer toggles
+                setTimeout(() => {
+                    console.log('Setting up layer toggles...');
+                    
+                    const toggles = [
+                        { id: '#fire-risk', layer: 'fireRisk' },
+                        { id: '#fire-perimeters', layer: 'firePerimeters' },
+                        { id: '#evacuation-buffers', layer: 'evacuationZones' },
+                        { id: '#population-centers', layer: 'populationCenters' },
+                        { id: '#evacuation-centers', layer: 'evacuationCenters' },
+                        { id: '#weather-stations', layer: 'weatherStations' },
+                        { id: '#historical-fires', layer: 'historicalFires' },
+                        { id: '#buffer-intersections', layer: 'bufferIntersections' }
+                    ];
+                    
+                    toggles.forEach(toggle => {
+                        $(toggle.id).off('change').on('change', function() {
+                            console.log(`Toggle ${toggle.id} clicked:`, $(this).is(':checked'));
+                            
+                            if (!WildfireApp.layers || !WildfireApp.layers[toggle.layer] || !WildfireApp.map) {
+                                console.error(`Dependencies not available for ${toggle.layer}`);
+                                return;
+                            }
+                            
+                            if ($(this).is(':checked')) {
+                                // Special handling for weather stations and buffer intersections
+                                if (toggle.layer === 'weatherStations') {
+                                    console.log('🌡️ Creating weather stations...');
+                                    if (WeatherManager && WeatherManager.createWeatherStations) {
+                                        try {
+                                            const count = WeatherManager.createWeatherStations();
+                                            console.log(`✅ Weather stations created successfully: ${count}`);
+                                        } catch (error) {
+                                            console.error('❌ Error creating weather stations:', error);
+                                        }
+                                    } else {
+                                        console.error('❌ WeatherManager or createWeatherStations not available');
+                                        console.log('Available WeatherManager:', WeatherManager);
+                                    }
+                                }
+                                
+                                if (toggle.layer === 'bufferIntersections') {
+                                    console.log('🔄 Creating buffer intersections...');
+                                    if (BufferSystem && BufferSystem.createBufferIntersections) {
+                                        try {
+                                            const count = BufferSystem.createBufferIntersections();
+                                            console.log(`✅ Buffer intersections created successfully: ${count}`);
+                                        } catch (error) {
+                                            console.error('❌ Error creating buffer intersections:', error);
+                                        }
+                                    } else {
+                                        console.error('❌ BufferSystem or createBufferIntersections not available');
+                                        console.log('Available BufferSystem:', BufferSystem);
+                                    }
+                                }
+                                
+                                // Add layer to map
+                                if (!WildfireApp.map.hasLayer(WildfireApp.layers[toggle.layer])) {
+                                    WildfireApp.layers[toggle.layer].addTo(WildfireApp.map);
+                                    console.log(`✅ Layer ${toggle.layer} added to map`);
+                                } else {
+                                    console.log(`ℹ️ Layer ${toggle.layer} already on map`);
+                                }
+                            } else {
+                                // Remove layer from map
+                                if (WildfireApp.map.hasLayer(WildfireApp.layers[toggle.layer])) {
+                                    WildfireApp.map.removeLayer(WildfireApp.layers[toggle.layer]);
+                                    console.log(`➖ Layer ${toggle.layer} removed from map`);
+                                }
+                            }
+                        });
+                    });
+                    
+                    // Ensure initially checked layers are visible
+                    setTimeout(() => {
+                        console.log('Adding initially checked layers to map...');
+                        
+                        toggles.forEach(toggle => {
+                            if ($(toggle.id).is(':checked') && WildfireApp.layers[toggle.layer]) {
+                                try {
+                                    if (!WildfireApp.map.hasLayer(WildfireApp.layers[toggle.layer])) {
+                                        WildfireApp.layers[toggle.layer].addTo(WildfireApp.map);
+                                        console.log(`Initial layer ${toggle.layer} added to map`);
+                                    }
+                                } catch (e) {
+                                    console.warn(`Failed to add initial layer ${toggle.layer}:`, e);
+                                }
+                            }
+                        });
+                    }, 500);
+                    
+                    console.log('✅ All layer toggles set up successfully');
+                    
+                }, 1000);
+                
+            } // FIXED: Missing closing bracket for initializeFallbackManagers function
+            
+        }); // FIXED: Missing closing bracket for waitForMap callback
+        
+    }, 1000); // End of setTimeout
+ // End of $(document).ready
+
+// Listen for WildfireApp ready event
+window.addEventListener('wildfireAppReady', function() {
+    console.log('🎯 WildfireApp ready event received');
+    
+    // Now it's safe to call FireManager methods
+    if (typeof FireManager !== 'undefined' && FireManager.createFirePerimeters) {
+        setTimeout(() => {
+            console.log('Creating fire perimeters after WildfireApp ready...');
+            FireManager.createFirePerimeters(12);
+        }, 100);
+    }
+});
+</script>
+
+<!-- Add the time controls and animation functionality -->
+<script>
+$(document).ready(function() {
+    // Wait for WildfireApp to be ready before setting up time controls
+    setTimeout(function() {
+        console.log('Setting up time controls and animation...');
+        
+        let animationInterval = null;
+        let animationSpeed = 1000; // Default 1 second
+        let isPlaying = false;
+        
+        // Define time functions
+        function updateTimeDisplay(timeValue) {
+            const times = [
+                '06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM',
+                '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM',
+                '06:00 PM', '07:00 PM', '08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM'
+            ];
+            
+            const displayTime = times[timeValue] || '12:00 PM';
+            $('#time-display').text(displayTime);
+            
+            // Update WildfireApp current time
+            if (typeof WildfireApp !== 'undefined') {
+                WildfireApp.currentTime = timeValue + 6; // Convert to 24-hour format starting at 6 AM
+            }
+        }
+        
+        function updateSimulationTime(timeValue) {
+            // Update fire conditions based on time
+            if (typeof FireManager !== 'undefined' && FireManager.createFirePerimeters) {
+                FireManager.createFirePerimeters(timeValue + 6); // Convert to 24-hour format
+            }
+            
+            // Update narrative with time-specific information
+            if (typeof WildfireApp !== 'undefined' && WildfireApp.updateNarrative) {
+                const times = [
+                    '06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM',
+                    '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM',
+                    '06:00 PM', '07:00 PM', '08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM'
+                ];
+                
+                const currentTime = times[timeValue] || '12:00 PM';
+                const hour = timeValue + 6;
+                
+                let conditions = '';
+                if (hour < 10) {
+                    conditions = 'Early morning conditions: Cool temperatures, high humidity, low wind speeds.';
+                } else if (hour < 14) {
+                    conditions = 'Late morning conditions: Rising temperatures, decreasing humidity, increasing winds.';
+                } else if (hour < 18) {
+                    conditions = 'Afternoon conditions: Peak temperatures, lowest humidity, strongest winds. HIGHEST FIRE RISK.';
+                } else {
+                    conditions = 'Evening conditions: Cooling temperatures, winds calming, humidity recovering.';
+                }
+                
+                WildfireApp.updateNarrative(`🕒 ${currentTime}: ${conditions}`);
+            }
+            
+            console.log('Simulation updated for time:', timeValue);
+        }
+        
+        function playAnimation() {
+            isPlaying = true;
+            $('#play-toggle').html('⏸️ Pause Animation').removeClass('btn-primary').addClass('btn-warning');
+            
+            animationInterval = setInterval(() => {
+                let currentValue = parseInt($('#time-slider').val());
+                const maxValue = parseInt($('#time-slider').attr('max'));
+                
+                if (currentValue >= maxValue) {
+                    currentValue = parseInt($('#time-slider').attr('min')); // Reset to beginning
+                } else {
+                    currentValue++;
+                }
+                
+                // Update slider position
+                $('#time-slider').val(currentValue);
+                
+                // Update time display and simulation
+                updateTimeDisplay(currentValue);
+                updateSimulationTime(currentValue);
+                
+            }, animationSpeed);
+            
+            console.log('Animation started with speed:', animationSpeed + 'ms');
+        }
+        
+        function pauseAnimation() {
+            isPlaying = false;
+            $('#play-toggle').html('▶️ Play Animation').removeClass('btn-warning').addClass('btn-primary');
+            
+            if (animationInterval) {
+                clearInterval(animationInterval);
+                animationInterval = null;
+            }
+            
+            console.log('Animation paused');
+        }
+        
+        function setAnimationSpeed(speed) {
+            animationSpeed = speed;
+            
+            // If currently playing, restart with new speed
+            if (isPlaying) {
+                pauseAnimation();
+                playAnimation();
+            }
+            
+            console.log('Animation speed changed to:', speed + 'ms');
+        }
+        
+        // Time slider change handler
+        $('#time-slider').off('input change').on('input change', function() {
+            const timeValue = parseInt($(this).val());
+            updateTimeDisplay(timeValue);
+            updateSimulationTime(timeValue);
+        });
+        
+        // Play/Pause button
+        $('#play-toggle').off('click').on('click', function() {
+            if (isPlaying) {
+                pauseAnimation();
+            } else {
+                playAnimation();
+            }
+        });
+        
+        // Speed control buttons
+        $('#speed-fast').off('click').on('click', function() {
+            setAnimationSpeed(500); // 0.5 seconds
+            $('.speed-controls button').removeClass('btn-warning').addClass('btn-primary');
+            $(this).removeClass('btn-primary').addClass('btn-warning');
+            $('#speed-display').text('Fast (0.5s)');
+        });
+        
+        $('#speed-normal').off('click').on('click', function() {
+            setAnimationSpeed(1000); // 1 second
+            $('.speed-controls button').removeClass('btn-warning').addClass('btn-primary');
+            $(this).removeClass('btn-primary').addClass('btn-warning');
+            $('#speed-display').text('Normal (1s)');
+        });
+        
+        $('#speed-slow').off('click').on('click', function() {
+            setAnimationSpeed(2000); // 2 seconds
+            $('.speed-controls button').removeClass('btn-warning').addClass('btn-primary');
+            $(this).removeClass('btn-primary').addClass('btn-warning');
+            $('#speed-display').text('Slow (2s)');
+        });
+        
+        // Initialize with current slider value
+        const initialTime = parseInt($('#time-slider').val()) || 0;
+        updateTimeDisplay(initialTime);
+        updateSimulationTime(initialTime);
+        
+        console.log('✅ Time controls and animation set up successfully');
+        
+    }, 4000); // Wait longer for all components to be ready
+    
+    // Analysis Tools functionality
+    let comparisonMode = false;
+    
+    $('#comparison-toggle').on('click', function() {
+        comparisonMode = !comparisonMode;
+        
+        if (comparisonMode) {
+            $(this).text('Exit Comparison').removeClass('btn-primary').addClass('btn-warning');
+            startHistoricalComparison();
+        } else {
+            $(this).text('Historical Comparison').removeClass('btn-warning').addClass('btn-primary');
+            exitHistoricalComparison();
+        }
+    });
+    
+    function startHistoricalComparison() {
+        console.log('Starting historical comparison mode');
+        
+        // Show historical fires if not already visible
+        if (!$('#historical-fires').is(':checked')) {
+            $('#historical-fires').prop('checked', true).trigger('change');
+        }
+        
+        // Add comparison overlay
+        if (WildfireApp && WildfireApp.map) {
+            const comparisonInfo = L.popup()
+                .setLatLng([33.7500, -116.5000])
+                .setContent(`
+                    <div style="min-width: 250px;">
+                        <h4 style="color: #2196F3;">📊 Historical Comparison Mode</h4>
+                        <div style="font-size: 12px; line-height: 1.4;">
+                            <strong>Now showing:</strong><br>
+                            • Current active fires (red)<br>
+                            • Historical fire locations (brown)<br>
+                            • Fire risk patterns over time<br><br>
+                            <strong>Analysis:</strong> Compare current fire behavior with historical patterns to predict spread and risk.
+                        </div>
+                    </div>
+                `)
+                .openOn(WildfireApp.map);
+        }
+        
+        // Update narrative
+        if (typeof WildfireApp !== 'undefined' && WildfireApp.updateNarrative) {
+            WildfireApp.updateNarrative('📊 Historical comparison mode activated. Comparing current conditions with past fire events.');
+        }
+    }
+    
+    function exitHistoricalComparison() {
+        console.log('Exiting historical comparison mode');
+        
+        // Close any open popups
+        if (WildfireApp && WildfireApp.map) {
+            WildfireApp.map.closePopup();
+        }
+        
+        // Update narrative
+        if (typeof WildfireApp !== 'undefined' && WildfireApp.updateNarrative) {
+            WildfireApp.updateNarrative('📊 Exited historical comparison mode. Returning to current fire monitoring.');
+        }
+    }
+    
+    // Clear Routes functionality
+    $('#clear-routes').on('click', function() {
+        console.log('Clear routes button clicked');
+        
+        if (typeof RouteManager !== 'undefined' && RouteManager.clearRoutes) {
+            RouteManager.clearRoutes();
+        } else if (typeof WildfireApp !== 'undefined' && WildfireApp.layers && WildfireApp.layers.routePlanning) {
+            WildfireApp.layers.routePlanning.clearLayers();
+            console.log('Routes cleared via WildfireApp');
+            
+            if (WildfireApp.updateNarrative) {
+                WildfireApp.updateNarrative('🗑️ All evacuation routes cleared.');
+            }
+        } else {
+            console.warn('No route clearing method available');
+        }
+    });
+    
+    // Export Report functionality
+    $('#export-report').on('click', function() {
+        console.log('Export report button clicked');
+        
+        const currentTime = $('#time-display').text() || '12:00 PM';
+        const activeLayer = [];
+        
+        // Check which layers are active
+        if ($('#fire-risk').is(':checked')) activeLayer.push('Fire Risk Surface');
+        if ($('#fire-perimeters').is(':checked')) activeLayer.push('Fire Perimeters');
+        if ($('#historical-fires').is(':checked')) activeLayer.push('Historical Fires');
+        if ($('#weather-stations').is(':checked')) activeLayer.push('Weather Stations');
+        if ($('#evacuation-centers').is(':checked')) activeLayer.push('Evacuation Centers');
+        
+        const reportData = {
+            timestamp: new Date().toISOString(),
+            simulationTime: currentTime,
+            activeLayers: activeLayer,
+            mapCenter: WildfireApp && WildfireApp.map ? WildfireApp.map.getCenter() : null,
+            zoomLevel: WildfireApp && WildfireApp.map ? WildfireApp.map.getZoom() : null,
+            comparisonMode: comparisonMode     
+                     };
+        
+        // Create and download report
+        const reportContent = `
+WILDFIRE RISK & EVACUATION REPORT
+Generated: ${new Date().toLocaleString()}
+Simulation Time: ${currentTime}
+
+ACTIVE LAYERS:
+${activeLayer.map(layer => '• ' + layer).join('\n')}
+
+MAP SETTINGS:
+• Zoom Level: ${reportData.zoomLevel || 'Unknown'}
+• Center: ${reportData.mapCenter ? `${reportData.mapCenter.lat.toFixed(4)}, ${reportData.mapCenter.lng.toFixed(4)}` : 'Unknown'}
+• Comparison Mode: ${comparisonMode ? 'Active' : 'Inactive'}
+
+ANALYSIS:
+This report provides a snapshot of current wildfire conditions and evacuation planning status.
+Use this data for emergency response coordination and risk assessment.
+        `;
+        
+        const blob = new Blob([reportContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `wildfire_report_${new Date().getTime()}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        console.log('Report exported successfully');
+        
+        if (typeof WildfireApp !== 'undefined' && WildfireApp.updateNarrative) {
+            WildfireApp.updateNarrative(`📄 Wildfire report exported for ${currentTime}.`);
+        }
+    });
+});
+
+// END OF SECOND SCRIPT BLOCK
+</script>
+
+<!-- Debug functions script (keep this) -->
+<script>
+function debugManagers() {
+    console.log('=== MANAGER DEBUG ===');
+    console.log('WeatherManager exists:', typeof WeatherManager !== 'undefined');
+    console.log('BufferSystem exists:', typeof BufferSystem !== 'undefined');
+    
+    if (WeatherManager) {
+        console.log('WeatherManager.createWeatherStations exists:', typeof WeatherManager.createWeatherStations === 'function');
+        console.log('WeatherManager object:', WeatherManager);
+    }
+    if (BufferSystem) {
+        console.log('BufferSystem.createBufferIntersections exists:', typeof BufferSystem.createBufferIntersections === 'function');
+        console.log('BufferSystem object:', BufferSystem);
+    }
+    
+    if (WildfireApp && WildfireApp.layers) {
+        console.log('WildfireApp.layers exists:', !!WildfireApp.layers);
+        console.log('weatherStations layer exists:', !!WildfireApp.layers.weatherStations);
+            console.log('weatherStations layer count:', WildfireApp.layers.weatherStations.getLayers().length);
+        }
+        if (WildfireApp.layers.bufferIntersections) {
+            console.log('bufferIntersections layer count:', WildfireApp.layers.bufferIntersections.getLayers().length);
+        }
+    }
+    console.log('==================');      
+
+function testWeatherStations() {
+    console.log('=== TESTING WEATHER STATIONS ===');
+    
+    // First check if managers exist
+    if (!WeatherManager) {
+        console.error('WeatherManager does not exist!');
+        return;
+    }
+    
+    if (!WeatherManager.createWeatherStations) {
+        console.error('WeatherManager.createWeatherStations method does not exist!');
+        return;
+    }
+    
+    // Check if layer exists
+    if (!WildfireApp.layers || !WildfireApp.layers.weatherStations) {
+        console.error('weatherStations layer does not exist!');
+        return;
+    }
+    
+    console.log('Manually creating weather stations...');
+    try {
+        WeatherManager.createWeatherStations();
+        console.log('Weather stations created successfully!');
+        console.log('Layer count:', WildfireApp.layers.weatherStations.getLayers().length);
+        
+        // Try to add to map
+        if (WildfireApp.map) {
+            WildfireApp.layers.weatherStations.addTo(WildfireApp.map);
+            console.log('Weather stations added to map!');
+        }
+    } catch (error) {
+        console.error('Error creating weather stations:', error);
+    }
+    console.log('================================');
+}
+
+// Make functions globally available
+window.debugManagers = debugManagers;
+window.testWeatherStations = testWeatherStations;
+
+console.log('✅ Debug functions loaded. Try: debugManagers() or testWeatherStations()');
+
+// Check if the communities were removed
+if (WildfireApp.populationCenters) {
+    const communityNames = WildfireApp.populationCenters.map(center => center.name);
+    console.log('Current communities:', communityNames);
+    console.log('Indian Wells removed:', !communityNames.includes('Indian Wells'));
+    console.log('Bermuda Dunes removed:', !communityNames.includes('Bermuda Dunes'));
+}
+</script>
 </body>
 </html>
