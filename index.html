@@ -99,9 +99,10 @@
     <!-- Scripts -->
     <!-- External Libraries -->
     <script src="lib/jquery-3.5.1.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- ADD THIS FIRE DATA SCRIPT FIRST -->
+    <script src="js/data/FireProgressionData.js"></script>
 
     <!-- Core WildfireApp FIRST -->
     <script src="js/core/WildfireApp.js"></script>
@@ -434,7 +435,7 @@
                                 
                                 circle.bindPopup(`
                                     <div style="min-width: 200px;">
-                                        <h4 style="color:' + color + ';">⚠️ ' + area.name + '</h4>
+                                        <h4 style="color: ${color};">⚠️ ${area.name}</h4>
                                         <div style="font-size: 12px;">
                                             <strong>Evacuation Level:</strong> ${area.level}<br>
                                             <strong>Buffer Radius:</strong> ${(area.radius/1000).toFixed(1)} km<br>
@@ -625,41 +626,12 @@ $(document).ready(function() {
         }
         
         function updateSimulationTime(timeValue) {
+            const currentHour = timeValue + 6; // Convert slider value to 24-hour format
+            
             // Update fire conditions based on time
             if (typeof FireManager !== 'undefined' && FireManager.createFirePerimeters) {
-                FireManager.createFirePerimeters(timeValue + 6); // Convert to 24-hour format
+                FireManager.createFirePerimeters(currentHour);
             }
-            
-            // Update narrative with time-specific information
-            if (typeof WildfireApp !== 'undefined' && WildfireApp.updateNarrative) {
-                const times = [
-                    '06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM', '11:00 AM',
-                    '12:00 PM', '01:00 PM', '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM',
-                    '06:00 PM', '07:00 PM', '08:00 PM', '09:00 PM', '10:00 PM', '11:00 PM'
-                ];
-                
-                const currentTime = times[timeValue] || '12:00 PM';
-                const hour = timeValue + 6;
-                
-                let conditions = '';
-                if (hour < 10) {
-                    conditions = 'Early morning conditions: Cool temperatures, high humidity, low wind speeds.';
-                } else if (hour < 14) {
-                    conditions = 'Late morning conditions: Rising temperatures, decreasing humidity, increasing winds.';
-                } else if (hour < 18) {
-                    conditions = 'Afternoon conditions: Peak temperatures, lowest humidity, strongest winds. HIGHEST FIRE RISK.';
-                } else {
-                    conditions = 'Evening conditions: Cooling temperatures, winds calming, humidity recovering.';
-                }
-                
-                // MODIFY THIS: Include time in the narrative
-                WildfireApp.updateNarrative(`🕒 ${currentTime}: ${conditions}`);
-                
-                // ADD THIS: Update the timestamp separately too
-                $('#narrative-timestamp').text(`Simulation Time: ${currentTime}`);
-            }
-            
-            console.log('Simulation updated for time:', timeValue);
         }
         
         function playAnimation() {

@@ -35,23 +35,15 @@ const MapManager = {
             fireRisk: L.layerGroup().addTo(WildfireApp.map),
             firePerimeters: L.layerGroup().addTo(WildfireApp.map),
             weatherStations: L.layerGroup(),
-            populationCenters: L.layerGroup(),
+            populationCenters: L.layerGroup().addTo(WildfireApp.map), // ALWAYS ADD TO MAP
             evacuationCenters: L.layerGroup(),
             evacuationZones: L.layerGroup().addTo(WildfireApp.map),
-            routePlanning: L.layerGroup(), // Make sure this exists!
+            routePlanning: L.layerGroup(),
             bufferIntersections: L.layerGroup().addTo(WildfireApp.map),
             historicalFires: L.layerGroup()
         };
         
         console.log('Layers initialized:', Object.keys(WildfireApp.layers));
-        
-        // Verify fire perimeters layer exists
-        if (!WildfireApp.layers.firePerimeters) {
-            console.error('Failed to create firePerimeters layer!');
-            WildfireApp.layers.firePerimeters = L.layerGroup().addTo(WildfireApp.map);
-        } else {
-            console.log('Fire perimeters layer created successfully');
-        }
     },
     
     setupMapEvents: function() {
